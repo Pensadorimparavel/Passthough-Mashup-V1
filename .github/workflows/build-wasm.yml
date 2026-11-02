@@ -12,6 +12,7 @@ on:
       - "Passthough-Mashup-V1-Fase-0.1-r2.zip"
       - "Passthough_Mashup_V1_Fase_0.2.1.zip"
       - "Passthough_Mashup_V1_Fase_0.2.1_patch.zip"
+      - "Passthough_Mashup_V1_Fase_0.3_readonly_lock.zip"
       - "src/**"
       - "scripts/**"
       - "tests/**"
@@ -64,6 +65,14 @@ jobs:
           cp -a /tmp/patch021/Passthough-Mashup-V1-Fase-0.1/src/bridge/Bridge.js ./src/bridge/
           cp -a /tmp/patch021/Passthough-Mashup-V1-Fase-0.1/src/workers/emulator.worker.js ./src/workers/
           cp -a /tmp/patch021/Passthough-Mashup-V1-Fase-0.1/tests/phase0_2_1.js ./tests/
+                - name: Aplicar correção read-only da Fase 0.3
+         run: |
+          unzip -q Passthough_Mashup_V1_Fase_0.3_readonly_lock.zip -d /tmp/phase03lock
+
+          cp -a /tmp/phase03lock/Passthough-Mashup-V1-Fase-0.1/src/state ./src/
+          cp -a /tmp/phase03lock/Passthough-Mashup-V1-Fase-0.1/src/workers/emulator.worker.js ./src/workers/
+          cp -a /tmp/phase03lock/Passthough-Mashup-V1-Fase-0.1/tests/phase0_3.html ./tests/
+          cp -a /tmp/phase03lock/Passthough-Mashup-V1-Fase-0.1/tests/phase0_3.js ./tests/
       - name: Preparar pastas
         run: mkdir -p logs wasm
 
