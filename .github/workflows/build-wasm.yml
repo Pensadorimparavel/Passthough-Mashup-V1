@@ -1,14 +1,13 @@
 name: Build mGBA WASM (Fase 0.1)
 
-# Compila mGBA 0.10.5 + wrapper com Emscripten e guarda logs e artefatos.
-# Este workflow só PROVA compilação. Execução no navegador e desempenho
-# continuam exigindo os testes de tests/phase0_1.html.
+# Compila mGBA 0.10.5 + wrapper com Emscripten.
+# Compilação não significa aprovação dos testes no navegador e Android.
 
 on:
   workflow_dispatch:
     inputs:
       emsdk_version:
-        description: "Versão do Emscripten SDK (tag do emsdk)"
+        description: "Versão do Emscripten SDK"
         required: false
         default: "3.1.74"
   push:
@@ -43,6 +42,7 @@ jobs:
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/logs .
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/README.md .
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/.gitignore .
+          sed -i 's/add_compile_definitions(DISABLE_THREADING)/add_compile_definitions(DISABLE_THREADING _POSIX_C_SOURCE=200809L PATH_MAX=4096)/' CMakeLists.txt
 
       - name: Preparar pasta de logs
         run: mkdir -p logs wasm
@@ -62,13 +62,13 @@ jobs:
             git --version
           } 2>&1 | tee logs/toolchain.txt
 
-      - name: Baixar mGBA 0.10.5 (tag exata)
+      - name: Baixar mGBA 0.10.5
         run: bash scripts/prepare_mgba.sh 2>&1 | tee logs/prepare.log
 
       - name: Verificar APIs nos headers reais do mGBA
         run: bash scripts/verify_mgba_api.sh
 
-      - name: Compilar (configure + build + checagem dos artefatos)
+      - name: Compilar
         run: bash scripts/build_wasm.sh
 
       - name: Resumo
@@ -77,7 +77,8 @@ jobs:
           {
             echo "## Fase 0.1 — resultado do workflow"
             echo ""
-            echo "**Compilação NÃO equivale a Fase 0.1 aprovada.** Faltam testes A–G no navegador e Android."
+            echo "**Compilação NÃO equivale a Fase 0.1 aprovada.**"
+            echo "Faltam testes A–G no navegador e Android."
             echo ""
             echo '```'
             cat logs/toolchain.txt 2>/dev/null || true
@@ -87,7 +88,7 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Enviar logs (sempre)
+      - name: Enviar logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -101,7 +102,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Enviar artefatos .wasm/.mjs (somente se tudo passou)
+      - name: Enviar artefatos WASM
         if: success()
         uses: actions/upload-artifact@v4
         with:
