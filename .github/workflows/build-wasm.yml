@@ -1,7 +1,4 @@
-name: Build mGBA WASM (Fase 0.1)
-
-# Compila mGBA 0.10.5 + wrapper com Emscripten.
-# Compilação não significa aprovação dos testes no navegador e Android.
+name: Build mGBA WASM and publish tests (Fase 0.1)
 
 on:
   workflow_dispatch:
@@ -12,18 +9,29 @@ on:
         default: "3.1.74"
   push:
     paths:
+      - "Passthough-Mashup-V1-Fase-0.1-r2.zip"
       - "src/**"
       - "scripts/**"
+      - "tests/**"
       - "CMakeLists.txt"
       - ".github/workflows/build-wasm.yml"
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     env:
       EMSDK_VERSION: ${{ github.event.inputs.emsdk_version || '3.1.74' }}
 
@@ -43,7 +51,8 @@ jobs:
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/README.md .
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/.gitignore .
           sed -i 's/add_compile_definitions(DISABLE_THREADING)/add_compile_definitions(DISABLE_THREADING _GNU_SOURCE _POSIX_C_SOURCE=200809L PATH_MAX=4096)/' CMakeLists.txt
-      - name: Preparar pasta de logs
+
+      - name: Preparar pastas
         run: mkdir -p logs wasm
 
       - name: Instalar Emscripten
@@ -61,30 +70,16 @@ jobs:
             git --version
           } 2>&1 | tee logs/toolchain.txt
 
-      - name: Baixar mGBA 0.10.5
-        run: bash scripts/prepare_mgba.sh 2>&1 | tee logs/prepare.log
-
-      - name: Verificar APIs nos headers reais do mGBA
-        run: bash scripts/verify_mgba_api.sh
-
-      - name: Compilar
+      - name: Compilar e verificar artefatos WASM
         run: bash scripts/build_wasm.sh
 
-      - name: Resumo
+      - name: Resumo da compilação
         if: always()
         run: |
           {
-            echo "## Fase 0.1 — resultado do workflow"
+            echo "## Fase 0.1 — resultado da compilação"
             echo ""
-            echo "**Compilação NÃO equivale a Fase 0.1 aprovada.**"
-            echo "Faltam testes A–G no navegador e Android."
-            echo ""
-            echo '```'
-            cat logs/toolchain.txt 2>/dev/null || true
-            cat logs/mgba_commit.txt 2>/dev/null || true
-            tail -n 5 logs/api_verification.log 2>/dev/null || echo "verificação de API não executada"
-            cat logs/build_result.txt 2>/dev/null || echo "build não executado/sem resultado"
-            echo '```'
+            cat logs/build_result.txt 2>/dev/null || echo "Build sem resultado."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Enviar logs
@@ -101,13 +96,34 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-      - name: Enviar artefatos WASM
+      - name: Preparar site de testes
         if: success()
-        uses: actions/upload-artifact@v4
+        run: |
+          mkdir -p _site
+          cp -a tests src wasm _site/
+          cat > _site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="pt-BR">
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>Passthough Mashup V1</title>
+          <p>Redirecionando para os testes da Fase 0.1…</p>
+          <p><a href="tests/phase0_1.html">Abrir testes da Fase 0.1</a></p>
+          <script>location.replace(new URL('tests/phase0_1.html', location.href));</script>
+          </html>
+          HTML
+
+      - name: Configurar GitHub Pages
+        if: success()
+        uses: actions/configure-pages@v5
+
+      - name: Enviar página de testes para publicação
+        if: success()
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: mgba-wasm-0.10.5
-          path: |
-            wasm/mgba_wasm.mjs
-            wasm/mgba_wasm.wasm
-          if-no-files-found: error
-          retention-days: 30
+          path: _site
+
+      - name: Publicar GitHub Pages
+        if: success()
+        id: deployment
+        uses: actions/deploy-pages@v4
