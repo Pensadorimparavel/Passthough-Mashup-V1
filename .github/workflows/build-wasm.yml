@@ -10,6 +10,8 @@ on:
   push:
     paths:
       - "Passthough-Mashup-V1-Fase-0.1-r2.zip"
+      - "Passthough_Mashup_V1_Fase_0.2.1.zip"
+      - "Passthough_Mashup_V1_Fase_0.2.1_patch.zip"
       - "src/**"
       - "scripts/**"
       - "tests/**"
@@ -51,7 +53,17 @@ jobs:
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/README.md .
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/.gitignore .
           sed -i 's/add_compile_definitions(DISABLE_THREADING)/add_compile_definitions(DISABLE_THREADING _GNU_SOURCE _POSIX_C_SOURCE=200809L PATH_MAX=4096)/' CMakeLists.txt
+      - name: Aplicar arquivos da Fase 0.2.1
+        run: |
+          unzip -q Passthough_Mashup_V1_Fase_0.2.1.zip -d /tmp/phase021
+          cp -a /tmp/phase021/Passthough-Mashup-V1-Fase-0.1/src/bridge ./src/
+          cp -a /tmp/phase021/Passthough-Mashup-V1-Fase-0.1/tests/phase0_2_1.html ./tests/
+          cp -a /tmp/phase021/Passthough-Mashup-V1-Fase-0.1/tests/phase0_2_1.js ./tests/
 
+          unzip -q Passthough_Mashup_V1_Fase_0.2.1_patch.zip -d /tmp/patch021
+          cp -a /tmp/patch021/Passthough-Mashup-V1-Fase-0.1/src/bridge/Bridge.js ./src/bridge/
+          cp -a /tmp/patch021/Passthough-Mashup-V1-Fase-0.1/src/workers/emulator.worker.js ./src/workers/
+          cp -a /tmp/patch021/Passthough-Mashup-V1-Fase-0.1/tests/phase0_2_1.js ./tests/
       - name: Preparar pastas
         run: mkdir -p logs wasm
 
