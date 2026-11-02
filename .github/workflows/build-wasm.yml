@@ -1,0 +1,113 @@
+name: Build mGBA WASM (Fase 0.1)
+
+# Compila mGBA 0.10.5 + wrapper com Emscripten e guarda logs e artefatos.
+# Este workflow só PROVA compilação. Execução no navegador e desempenho
+# continuam exigindo os testes de tests/phase0_1.html.
+
+on:
+  workflow_dispatch:
+    inputs:
+      emsdk_version:
+        description: "Versão do Emscripten SDK (tag do emsdk)"
+        required: false
+        default: "3.1.74"
+  push:
+    paths:
+      - "src/**"
+      - "scripts/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/build-wasm.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      EMSDK_VERSION: ${{ github.event.inputs.emsdk_version || '3.1.74' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extrair pacote r2
+        run: |
+          unzip -q Passthough-Mashup-V1-Fase-0.1-r2.zip -d /tmp/passthough
+          cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/src .
+          cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/scripts .
+          cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/tests .
+          cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/CMakeLists.txt .
+          cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/wasm .
+          cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/logs .
+          cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/README.md .
+          cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/.gitignore .
+
+      - name: Preparar pasta de logs
+        run: mkdir -p logs wasm
+
+      - name: Instalar Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSDK_VERSION }}
+          actions-cache-folder: emsdk-cache
+
+      - name: Registrar versões das ferramentas
+        run: |
+          {
+            echo "emsdk solicitado: $EMSDK_VERSION"
+            emcc --version | head -1
+            cmake --version | head -1
+            git --version
+          } 2>&1 | tee logs/toolchain.txt
+
+      - name: Baixar mGBA 0.10.5 (tag exata)
+        run: bash scripts/prepare_mgba.sh 2>&1 | tee logs/prepare.log
+
+      - name: Verificar APIs nos headers reais do mGBA
+        run: bash scripts/verify_mgba_api.sh
+
+      - name: Compilar (configure + build + checagem dos artefatos)
+        run: bash scripts/build_wasm.sh
+
+      - name: Resumo
+        if: always()
+        run: |
+          {
+            echo "## Fase 0.1 — resultado do workflow"
+            echo ""
+            echo "**Compilação NÃO equivale a Fase 0.1 aprovada.** Faltam testes A–G no navegador e Android."
+            echo ""
+            echo '```'
+            cat logs/toolchain.txt 2>/dev/null || true
+            cat logs/mgba_commit.txt 2>/dev/null || true
+            tail -n 5 logs/api_verification.log 2>/dev/null || echo "verificação de API não executada"
+            cat logs/build_result.txt 2>/dev/null || echo "build não executado/sem resultado"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enviar logs (sempre)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-fase-0-1
+          path: |
+            logs/
+            build-wasm/CMakeCache.txt
+            build-wasm/CMakeFiles/CMakeConfigureLog.yaml
+            build-wasm/CMakeFiles/CMakeOutput.log
+            build-wasm/CMakeFiles/CMakeError.log
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enviar artefatos .wasm/.mjs (somente se tudo passou)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mgba-wasm-0.10.5
+          path: |
+            wasm/mgba_wasm.mjs
+            wasm/mgba_wasm.wasm
+          if-no-files-found: error
+          retention-days: 30
