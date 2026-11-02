@@ -42,8 +42,7 @@ jobs:
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/logs .
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/README.md .
           cp -a /tmp/passthough/Passthough-Mashup-V1-Fase-0.1-r2/.gitignore .
-          sed -i 's/add_compile_definitions(DISABLE_THREADING)/add_compile_definitions(DISABLE_THREADING _POSIX_C_SOURCE=200809L PATH_MAX=4096)/' CMakeLists.txt
-
+          sed -i 's/add_compile_definitions(DISABLE_THREADING)/add_compile_definitions(DISABLE_THREADING _GNU_SOURCE _POSIX_C_SOURCE=200809L PATH_MAX=4096)/' CMakeLists.txt
       - name: Preparar pasta de logs
         run: mkdir -p logs wasm
 
