@@ -80,6 +80,7 @@ jobs:
           unzip -q Passthough_Mashup_V1_Fase_0.3.1_test_lab.zip -d /tmp/phase031
           cp -a /tmp/phase031/Passthough-Mashup-V1-Fase-0.1/tests/phase0_3_1.html ./tests/
           cp -a /tmp/phase031/Passthough-Mashup-V1-Fase-0.1/tests/phase0_3_1.js ./tests/
+          cp -a /tmp/phase031/Passthough-Mashup-V1-Fase-0.1/src/state/adapters/ZeldaStateAdapter.js ./src/state/adapters/
 
       - name: Preparar pastas
         run: mkdir -p logs wasm
