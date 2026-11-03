@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Teste do núcleo GBA — Passthough Mashup</title>
+  <style>
+    body{font:16px system-ui,sans-serif;max-width:850px;margin:24px auto;padding:0 14px;background:#101318;color:#e8edf2}
+    section{background:#171c23;border:1px solid #39424d;border-radius:12px;padding:14px;margin:12px 0}
+    button{font:inherit;padding:10px 14px;border-radius:8px;background:#283342;color:white;border:1px solid #536273}
+    pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#090c10;padding:12px;border-radius:8px}
+    .muted{color:#aeb9c6}
+  </style>
+</head>
+<body>
+  <h1>Teste do núcleo de integração GBA</h1>
+  <p class="muted">Teste automatizado com Workers simulados. Não carrega ROMs e não comprova ainda a integração em runtime com os jogos reais.</p>
+  <section>
+    <button id="run">Executar testes</button>
+    <p id="status" class="muted">Aguardando.</p>
+    <pre id="output">Nenhum teste executado.</pre>
+  </section>
+  <script type="module" src="./gba_mashup_core.test.js"></script>
+</body>
+</html>
