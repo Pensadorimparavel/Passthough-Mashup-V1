@@ -215,7 +215,6 @@ async function readLink() {
     if (!Number.isFinite(state.position?.x) || !Number.isFinite(state.position?.y)) {
       throw new Error("Zelda Adapter não retornou X/Y finitos.");
     }
-    ui.position.textContent = "X " + state.position.x + " · Y " + state.position.y;
     return state;
   } finally {
     reading = false;
@@ -248,6 +247,7 @@ async function poll() {
         throw new Error("ACK de B inválido: " + JSON.stringify(p));
       }
       eventCount += 1;
+      ui.position.textContent = "X " + p.position.x + " · Y " + p.position.y;
       const offset = { dx: p.position.x - radarOrigin.x, dy: p.position.y - radarOrigin.y };
       history.push({ dx: offset.dx, dy: offset.dy, x: p.position.x, y: p.position.y });
       if (history.length > 120) history.shift();
