@@ -154,8 +154,9 @@ export class GbaMashupRuntime {
       const [hostFrame, providerFrame] = await Promise.all([
         this.host.stepFrame(), this.provider.stepFrame()
       ]);
-      const [hostFramebuffer, providerFramebuffer, providerState] = await Promise.all([
-        this.host.framebuffer(), this.provider.framebuffer(), this.provider.readState()
+      const [hostFramebuffer, providerFramebuffer, hostState, providerState] = await Promise.all([
+        this.host.framebuffer(), this.provider.framebuffer(),
+        this.host.readState(), this.provider.readState()
       ]);
       const message = createMashupMessage({
         source: this.provider.id,
@@ -169,7 +170,8 @@ export class GbaMashupRuntime {
       if (!validation.valid) throw new Error("Mensagem de mashup inválida: " + validation.reason);
       this.onProviderState(message);
       this.onHostFrame({
-        hostFrame, providerFrame, hostFramebuffer, providerFramebuffer, message
+        hostFrame, providerFrame, hostFramebuffer, providerFramebuffer,
+        hostState, providerState, message
       });
       return message;
     } finally {
