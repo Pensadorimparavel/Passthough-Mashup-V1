@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101318"><title>Passthough Mashup — Fase 1.1</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101318;color:#e8edf2}*{box-sizing:border-box}
+body{max-width:1100px;margin:0 auto;padding:14px}h1{font-size:1.45rem}.panel{background:#171c23;border:1px solid #39424d;border-radius:12px;padding:13px;margin:12px 0}
+.muted{color:#aeb9c6;line-height:1.45}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button,input{font:inherit;padding:8px;border-radius:8px}button{background:#283342;color:white;border:1px solid #536273}button:disabled{opacity:.5}
+.screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.screen{position:relative;width:100%;max-width:480px;aspect-ratio:3/2}
+.screen canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;background:#000;border:1px solid #46515e}#overlayA{pointer-events:none}
+.pad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,48px);gap:5px;justify-content:center}.pad button{padding:0;font-size:1.1rem;touch-action:none;user-select:none;-webkit-user-select:none}.blank{visibility:hidden}.touch-actions{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin:8px 0}.touch-actions button{min-width:48px;min-height:46px;border-radius:50%;font-weight:700;touch-action:none;user-select:none;-webkit-user-select:none}.control-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.control-card{background:#0d1117;border:1px solid #303a46;border-radius:10px;padding:12px;min-width:0}.control-layout{display:flex;justify-content:space-around;align-items:center;gap:8px;flex-wrap:wrap}@media(max-width:650px){.control-grid{grid-template-columns:1fr}}
+.readout{font:13px monospace;overflow-wrap:anywhere}label.small{font-size:12px;color:#aeb9c6;display:grid;gap:3px}label.small input{width:100%;min-width:74px}
+.cal{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#090c10;padding:10px;border-radius:8px;max-height:180px;overflow:auto}
+</style></head><body>
+<h1>Passthough Mashup — Fase 1.1: Goku no mundo de Zelda</h1>
+<p class="muted">Os dois jogos continuam independentes. A posição decodificada de Goku (Legacy of Goku II) é projetada sobre a tela de Minish Cap. Esta etapa transfere apenas o estado de posição como marcador; ainda não transfere sprite, colisão ou física. A conversão entre os mundos é calibrável.</p>
+<section class="panel"><div class="row"><label>ROM A — Minish Cap <input id="romA" type="file" accept=".gba,.bin"></label><label>ROM B — Legacy of Goku II <input id="romB" type="file" accept=".gba,.bin"></label><button id="load">Iniciar integração</button><button id="stop" disabled>Parar</button></div><p id="status" class="muted">Aguardando as duas ROMs.</p></section>
+<section class="panel"><div class="screens">
+<div><h2>Host — Minish Cap</h2><div class="screen"><canvas id="screenA" width="240" height="160"></canvas><canvas id="overlayA" width="240" height="160"></canvas></div><p class="muted">Setas = movimento · X/Z = A/B. O marcador ciano indica a posição projetada de Goku.</p></div>
+<div><h2>Provider — Legacy of Goku II</h2><div class="screen"><canvas id="screenB" width="240" height="160"></canvas></div><p class="muted">W/A/S/D = movimento · J/K = A/B. Este jogo fornece o estado de Goku para o mundo de Zelda.</p></div>
+</div></section>
+<section class="panel"><h2>Controles por toque</h2><p class="muted">Use os botões na tela para jogar no celular. Cada conjunto controla somente seu próprio jogo; também é possível usar teclado físico.</p>
+<div class="control-grid">
+<div class="control-card"><strong>Minish Cap · Worker A</strong><div class="control-layout" style="margin-top:12px">
+<div class="pad">
+<button class="blank" tabindex="-1"></button><button data-key-a="up">▲</button><button class="blank" tabindex="-1"></button>
+<button data-key-a="left">◀</button><button class="blank" tabindex="-1"></button><button data-key-a="right">▶</button>
+<button class="blank" tabindex="-1"></button><button data-key-a="down">▼</button><button class="blank" tabindex="-1"></button>
+</div><div><div class="touch-actions"><button data-key-a="b">B</button><button data-key-a="a">A</button></div><div class="touch-actions"><button data-key-a="l">L</button><button data-key-a="r">R</button></div><div class="touch-actions"><button data-key-a="select">SEL</button><button data-key-a="start">START</button></div></div>
+</div></div>
+<div class="control-card"><strong>Legacy of Goku II · Worker B</strong><div class="control-layout" style="margin-top:12px">
+<div class="pad">
+<button class="blank" tabindex="-1"></button><button data-key-b="up">▲</button><button class="blank" tabindex="-1"></button>
+<button data-key-b="left">◀</button><button class="blank" tabindex="-1"></button><button data-key-b="right">▶</button>
+<button class="blank" tabindex="-1"></button><button data-key-b="down">▼</button><button class="blank" tabindex="-1"></button>
+</div><div><div class="touch-actions"><button data-key-b="b">B</button><button data-key-b="a">A</button></div><div class="touch-actions"><button data-key-b="l">L</button><button data-key-b="r">R</button></div><div class="touch-actions"><button data-key-b="select">SEL</button><button data-key-b="start">START</button></div></div>
+</div></div>
+</div></section>
+<section class="panel"><h2>Calibração da projeção</h2><p class="muted">Converte coordenadas do mundo de Legacy of Goku II para a tela de Minish Cap. Ajuste escala e deslocamento; a transformação não altera nenhum dos jogos.</p>
+<div class="cal">
+<label class="small">Origem X<input id="originX" type="number" step="1" value="0"></label>
+<label class="small">Origem Y<input id="originY" type="number" step="1" value="0"></label>
+<label class="small">Escala X<input id="scaleX" type="number" step="0.001" value="0.05"></label>
+<label class="small">Escala Y<input id="scaleY" type="number" step="0.001" value="0.05"></label>
+<label class="small">Deslocamento X<input id="offsetX" type="number" step="1" value="120"></label>
+<label class="small">Deslocamento Y<input id="offsetY" type="number" step="1" value="80"></label>
+</div><div class="row" style="margin-top:10px"><button id="apply">Aplicar calibração</button><span id="projection" class="readout">Personagem DBZ: aguardando leitura</span></div></section>
+<section class="panel"><h2>Estado transferido</h2><div class="row"><div><small class="muted">Personagem X</small><div id="gokuX" class="readout">—</div></div><div><small class="muted">Personagem Y</small><div id="gokuY" class="readout">—</div></div><div><small class="muted">Frame A/B</small><div id="frames" class="readout">—</div></div></div><p id="providerStatus" class="muted">Legacy of Goku II: aguardando leitura do personagem.</p></section>
+<section class="panel"><h2>Log</h2><pre id="log">Pronto.</pre></section>
+<script type="module" src="./phase1_1.js"></script></body></html>
