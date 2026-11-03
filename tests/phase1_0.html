@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101318"><title>Passthough Mashup — Fase 1.0</title>
+<meta name="theme-color" content="#101318"><title>Passthough Mashup — Fase 1.1</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101318;color:#e8edf2}*{box-sizing:border-box}
 body{max-width:1100px;margin:0 auto;padding:14px}h1{font-size:1.45rem}.panel{background:#171c23;border:1px solid #39424d;border-radius:12px;padding:13px;margin:12px 0}
@@ -14,12 +14,12 @@ button,input{font:inherit;padding:8px;border-radius:8px}button{background:#28334
 .readout{font:13px monospace;overflow-wrap:anywhere}label.small{font-size:12px;color:#aeb9c6;display:grid;gap:3px}label.small input{width:100%;min-width:74px}
 .cal{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#090c10;padding:10px;border-radius:8px;max-height:180px;overflow:auto}
 </style></head><body>
-<h1>Passthough Mashup — Fase 1.0: transferência de entidade</h1>
-<p class="muted">Os dois jogos continuam independentes. A posição decodificada de Link (Minish Cap) é transmitida para um renderer sobre a tela de Buu's Fury. A projeção é calibrável e ainda não representa colisão nem equivalência entre os mundos.</p>
-<section class="panel"><div class="row"><label>ROM A — Minish Cap <input id="romA" type="file" accept=".gba,.bin"></label><label>ROM B — Buu's Fury <input id="romB" type="file" accept=".gba,.bin"></label><button id="load">Iniciar integração</button><button id="stop" disabled>Parar</button></div><p id="status" class="muted">Aguardando as duas ROMs.</p></section>
+<h1>Passthough Mashup — Fase 1.1: Goku no mundo de Zelda</h1>
+<p class="muted">Os dois jogos continuam independentes. A posição decodificada de Goku (Legacy of Goku II) é projetada sobre a tela de Minish Cap. Esta etapa transfere apenas o estado de posição como marcador; ainda não transfere sprite, colisão ou física. A conversão entre os mundos é calibrável.</p>
+<section class="panel"><div class="row"><label>ROM A — Minish Cap <input id="romA" type="file" accept=".gba,.bin"></label><label>ROM B — Legacy of Goku II <input id="romB" type="file" accept=".gba,.bin"></label><button id="load">Iniciar integração</button><button id="stop" disabled>Parar</button></div><p id="status" class="muted">Aguardando as duas ROMs.</p></section>
 <section class="panel"><div class="screens">
-<div><h2>Host — Minish Cap</h2><div class="screen"><canvas id="screenA" width="240" height="160"></canvas></div><p class="muted">Setas = movimento · X/Z = A/B</p></div>
-<div><h2>Provider — Buu's Fury + Link</h2><div class="screen"><canvas id="screenB" width="240" height="160"></canvas><canvas id="overlayB" width="240" height="160"></canvas></div><p class="muted">W/A/S/D = movimento · J/K = A/B. O marcador ciano representa a posição de Link recebida do outro Worker.</p></div>
+<div><h2>Host — Minish Cap</h2><div class="screen"><canvas id="screenA" width="240" height="160"></canvas><canvas id="overlayA" width="240" height="160"></canvas></div><p class="muted">Setas = movimento · X/Z = A/B. O marcador ciano indica a posição projetada de Goku.</p></div>
+<div><h2>Provider — Legacy of Goku II</h2><div class="screen"><canvas id="screenB" width="240" height="160"></canvas></div><p class="muted">W/A/S/D = movimento · J/K = A/B. Este jogo fornece o estado de Goku para o mundo de Zelda.</p></div>
 </div></section>
 <section class="panel"><h2>Controles por toque</h2><p class="muted">Use os botões na tela para jogar no celular. Cada conjunto controla somente seu próprio jogo; também é possível usar teclado físico.</p>
 <div class="control-grid">
@@ -30,7 +30,7 @@ button,input{font:inherit;padding:8px;border-radius:8px}button{background:#28334
 <button class="blank" tabindex="-1"></button><button data-key-a="down">▼</button><button class="blank" tabindex="-1"></button>
 </div><div><div class="touch-actions"><button data-key-a="b">B</button><button data-key-a="a">A</button></div><div class="touch-actions"><button data-key-a="l">L</button><button data-key-a="r">R</button></div><div class="touch-actions"><button data-key-a="select">SEL</button><button data-key-a="start">START</button></div></div>
 </div></div>
-<div class="control-card"><strong>Buu's Fury · Worker B</strong><div class="control-layout" style="margin-top:12px">
+<div class="control-card"><strong>Legacy of Goku II · Worker B</strong><div class="control-layout" style="margin-top:12px">
 <div class="pad">
 <button class="blank" tabindex="-1"></button><button data-key-b="up">▲</button><button class="blank" tabindex="-1"></button>
 <button data-key-b="left">◀</button><button class="blank" tabindex="-1"></button><button data-key-b="right">▶</button>
@@ -38,7 +38,7 @@ button,input{font:inherit;padding:8px;border-radius:8px}button{background:#28334
 </div><div><div class="touch-actions"><button data-key-b="b">B</button><button data-key-b="a">A</button></div><div class="touch-actions"><button data-key-b="l">L</button><button data-key-b="r">R</button></div><div class="touch-actions"><button data-key-b="select">SEL</button><button data-key-b="start">START</button></div></div>
 </div></div>
 </div></section>
-<section class="panel"><h2>Calibração da projeção</h2><p class="muted">Converte coordenadas do mundo de Minish Cap para pixels da tela de Buu's Fury. Ajuste escala e deslocamento; a transformação não altera nenhum dos jogos.</p>
+<section class="panel"><h2>Calibração da projeção</h2><p class="muted">Converte coordenadas do mundo de Legacy of Goku II para a tela de Minish Cap. Ajuste escala e deslocamento; a transformação não altera nenhum dos jogos.</p>
 <div class="cal">
 <label class="small">Origem X<input id="originX" type="number" step="1" value="0"></label>
 <label class="small">Origem Y<input id="originY" type="number" step="1" value="0"></label>
@@ -47,6 +47,6 @@ button,input{font:inherit;padding:8px;border-radius:8px}button{background:#28334
 <label class="small">Deslocamento X<input id="offsetX" type="number" step="1" value="120"></label>
 <label class="small">Deslocamento Y<input id="offsetY" type="number" step="1" value="80"></label>
 </div><div class="row" style="margin-top:10px"><button id="apply">Aplicar calibração</button><span id="projection" class="readout">Link: aguardando leitura</span></div></section>
-<section class="panel"><h2>Estado transferido</h2><div class="row"><div><small class="muted">Link X</small><div id="linkX" class="readout">—</div></div><div><small class="muted">Link Y</small><div id="linkY" class="readout">—</div></div><div><small class="muted">Frame A/B</small><div id="frames" class="readout">—</div></div></div><p id="probe" class="muted">Buu's Fury: sondagem experimental ainda não executada.</p></section>
+<section class="panel"><h2>Estado transferido</h2><div class="row"><div><small class="muted">Goku X</small><div id="gokuX" class="readout">—</div></div><div><small class="muted">Goku Y</small><div id="gokuY" class="readout">—</div></div><div><small class="muted">Frame A/B</small><div id="frames" class="readout">—</div></div></div><p id="providerStatus" class="muted">Legacy of Goku II: aguardando leitura do personagem.</p></section>
 <section class="panel"><h2>Log</h2><pre id="log">Pronto.</pre></section>
 <script type="module" src="./phase1_0.js"></script></body></html>
