@@ -14,6 +14,7 @@ on:
       - "Passthough_Mashup_V1_Fase_0.2.1_patch.zip"
       - "Passthough_Mashup_V1_Fase_0.3_readonly_lock.zip"
       - "Passthough_Mashup_V1_Fase_0.3.1_test_lab.zip"
+      - "Fase_0_4_overlay_download.zip"
       - "src/**"
       - "scripts/**"
       - "tests/**"
@@ -81,6 +82,15 @@ jobs:
           cp -a /tmp/phase031/Passthough-Mashup-V1-Fase-0.1/tests/phase0_3_1.html ./tests/
           cp -a /tmp/phase031/Passthough-Mashup-V1-Fase-0.1/tests/phase0_3_1.js ./tests/
           cp -a /tmp/phase031/Passthough-Mashup-V1-Fase-0.1/src/state/adapters/ZeldaStateAdapter.js ./src/state/adapters/
+
+      - name: Aplicar primeira integração funcional da Fase 0.4
+        run: |
+          unzip -q Fase_0_4_overlay_download.zip -d /tmp/phase04
+          cp -a /tmp/phase04/Passthough-Mashup-V1-Fase-0.1/src/bridge/MessageProtocol.js ./src/bridge/
+          cp -a /tmp/phase04/Passthough-Mashup-V1-Fase-0.1/src/workers/emulator.worker.js ./src/workers/
+          cp -a /tmp/phase04/Passthough-Mashup-V1-Fase-0.1/tests/phase0_4.html ./tests/
+          cp -a /tmp/phase04/Passthough-Mashup-V1-Fase-0.1/tests/phase0_4.js ./tests/
+
 
       - name: Preparar pastas
         run: mkdir -p logs wasm
