@@ -75,10 +75,10 @@ function drawTransferredEntity(){
  if(!goku?.position)return;
  const x=(goku.position.x-transform.originX)*transform.scaleX+transform.offsetX;
  const y=(goku.position.y-transform.originY)*transform.scaleY+transform.offsetY;
- ui.projection.textContent="Goku projetado em Minish Cap: x="+x.toFixed(1)+" · y="+y.toFixed(1);
+ ui.projection.textContent="Personagem DBZ projetado em Minish Cap: x="+x.toFixed(1)+" · y="+y.toFixed(1);
  if(x < -12 || x > 252 || y < -12 || y > 172)return;
  ov.fillStyle="rgba(0,0,0,.72)";ov.fillRect(4,4,142,20);
- ov.fillStyle="#7df9ff";ov.font="10px monospace";ov.fillText("GOKU / LEGACY OF GOKU II",9,18);
+ ov.fillStyle="#7df9ff";ov.font="10px monospace";ov.fillText("DBZ PLAYER / LEGACY OF GOKU II",9,18);
  ov.strokeStyle="#7df9ff";ov.lineWidth=2;ov.beginPath();ov.arc(x,y,6,0,Math.PI*2);ov.stroke();
  ov.beginPath();ov.moveTo(x-10,y);ov.lineTo(x+10,y);ov.moveTo(x,y-10);ov.lineTo(x,y+10);ov.stroke();
 }
@@ -99,7 +99,7 @@ async function tick(){
    ui.linkX.textContent=goku?.position ? goku.position.x.toFixed(3) : "indisponível";
    ui.linkY.textContent=goku?.position ? goku.position.y.toFixed(3) : "indisponível";
    ui.probe.textContent=goku?.position
-    ? "Goku detectado · confiança: "+goku.confidence+" · coordenadas Q24.8 convertidas."
+    ? "Personagem detectado · confiança: "+goku.confidence+" · coordenadas Q24.8 convertidas."
     : (goku?.reason || "Aguardando o personagem ser criado no jogo.");
    ui.frames.textContent=fa+" / "+fb;
    drawTransferredEntity();
@@ -131,7 +131,7 @@ ui.load.addEventListener("click",async()=>{
   running=true;raf=requestAnimationFrame(tick);ui.load.disabled=false;ui.stop.disabled=false;
   ui.status.textContent="Dois jogos ativos. Goku é decodificado no Worker B e projetado sobre Minish Cap (Worker A).";
   log("Adaptadores mGBA conectados ao núcleo GBA.");
-  log("Goku: g_PlayerObject em 0x03001FA8; X/Y em +0x158/+0x15C (Q24.8, confiança provável).");
+  log("Personagem ativo: g_PlayerObject em 0x03001FA8; X/Y em +0x158/+0x15C (Q24.8, confiança provável).");
   log("Provider → Host: Legacy of Goku II → Minish Cap. Leitura de RAM somente; nenhuma escrita.");
  }catch(e){log("Falha: "+e.message);ui.status.textContent="Falha ao iniciar: "+e.message;stop();}
 });
