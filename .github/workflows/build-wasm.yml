@@ -91,6 +91,11 @@ jobs:
           cp -a /tmp/phase04/Passthough-Mashup-V1-Fase-0.1/tests/phase0_4.html ./tests/
           cp -a /tmp/phase04/Passthough-Mashup-V1-Fase-0.1/tests/phase0_4.js ./tests/
 
+      - name: Aplicar interface de telemetria da Fase 0.5
+        run: |
+          cp -a tests/phase0_5.html ./tests/
+          cp -a tests/phase0_5.js ./tests/
+
 
       - name: Preparar pastas
         run: mkdir -p logs wasm
