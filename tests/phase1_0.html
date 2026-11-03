@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101318"><title>Passthough Mashup — Fase 1.0</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101318;color:#e8edf2}*{box-sizing:border-box}
+body{max-width:1100px;margin:0 auto;padding:14px}h1{font-size:1.45rem}.panel{background:#171c23;border:1px solid #39424d;border-radius:12px;padding:13px;margin:12px 0}
+.muted{color:#aeb9c6;line-height:1.45}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button,input{font:inherit;padding:8px;border-radius:8px}button{background:#283342;color:white;border:1px solid #536273}button:disabled{opacity:.5}
+.screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.screen{position:relative;width:100%;max-width:480px;aspect-ratio:3/2}
+.screen canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;background:#000;border:1px solid #46515e}#overlayB{pointer-events:none}
+.pad{display:grid;grid-template-columns:repeat(3,42px);gap:4px}.pad button{padding:8px 0;touch-action:none}.blank{visibility:hidden}
+.readout{font:13px monospace;overflow-wrap:anywhere}label.small{font-size:12px;color:#aeb9c6;display:grid;gap:3px}label.small input{width:100%;min-width:74px}
+.cal{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#090c10;padding:10px;border-radius:8px;max-height:180px;overflow:auto}
+</style></head><body>
+<h1>Passthough Mashup — Fase 1.0: transferência de entidade</h1>
+<p class="muted">Os dois jogos continuam independentes. A posição decodificada de Link (Minish Cap) é transmitida para um renderer sobre a tela de Buu's Fury. A projeção é calibrável e ainda não representa colisão nem equivalência entre os mundos.</p>
+<section class="panel"><div class="row"><label>ROM A — Minish Cap <input id="romA" type="file" accept=".gba,.bin"></label><label>ROM B — Buu's Fury <input id="romB" type="file" accept=".gba,.bin"></label><button id="load">Iniciar integração</button><button id="stop" disabled>Parar</button></div><p id="status" class="muted">Aguardando as duas ROMs.</p></section>
+<section class="panel"><div class="screens">
+<div><h2>Host — Minish Cap</h2><div class="screen"><canvas id="screenA" width="240" height="160"></canvas></div><p class="muted">Setas = movimento · X/Z = A/B</p></div>
+<div><h2>Provider — Buu's Fury + Link</h2><div class="screen"><canvas id="screenB" width="240" height="160"></canvas><canvas id="overlayB" width="240" height="160"></canvas></div><p class="muted">W/A/S/D = movimento · J/K = A/B. O marcador ciano representa a posição de Link recebida do outro Worker.</p></div>
+</div></section>
+<section class="panel"><h2>Calibração da projeção</h2><p class="muted">Converte coordenadas do mundo de Minish Cap para pixels da tela de Buu's Fury. Ajuste escala e deslocamento; a transformação não altera nenhum dos jogos.</p>
+<div class="cal">
+<label class="small">Origem X<input id="originX" type="number" step="1" value="0"></label>
+<label class="small">Origem Y<input id="originY" type="number" step="1" value="0"></label>
+<label class="small">Escala X<input id="scaleX" type="number" step="0.001" value="0.05"></label>
+<label class="small">Escala Y<input id="scaleY" type="number" step="0.001" value="0.05"></label>
+<label class="small">Deslocamento X<input id="offsetX" type="number" step="1" value="120"></label>
+<label class="small">Deslocamento Y<input id="offsetY" type="number" step="1" value="80"></label>
+</div><div class="row" style="margin-top:10px"><button id="apply">Aplicar calibração</button><span id="projection" class="readout">Link: aguardando leitura</span></div></section>
+<section class="panel"><h2>Estado transferido</h2><div class="row"><div><small class="muted">Link X</small><div id="linkX" class="readout">—</div></div><div><small class="muted">Link Y</small><div id="linkY" class="readout">—</div></div><div><small class="muted">Frame A/B</small><div id="frames" class="readout">—</div></div></div><p id="probe" class="muted">Buu's Fury: sondagem experimental ainda não executada.</p></section>
+<section class="panel"><h2>Log</h2><pre id="log">Pronto.</pre></section>
+<script type="module" src="./phase1_0.js"></script></body></html>
