@@ -47,10 +47,28 @@ function release(target){
  held[target].clear();masks[target]=0;
  if(workers[target])workers[target].request("setKeys",{keys:0}).catch(()=>{});
 }
+function bindTouchControls(selector,target){
+ document.querySelectorAll(selector).forEach(button=>{
+  const key=button.dataset[target==="A"?"keyA":"keyB"];
+  button.addEventListener("pointerdown",event=>{
+   event.preventDefault();
+   button.setPointerCapture?.(event.pointerId);
+   setKey(target,key,true);
+  });
+  const up=event=>{event.preventDefault();setKey(target,key,false);};
+  button.addEventListener("pointerup",up);
+  button.addEventListener("pointercancel",up);
+  button.addEventListener("lostpointercapture",()=>setKey(target,key,false));
+  button.addEventListener("contextmenu",event=>event.preventDefault());
+ });
+}
 function bindControls(){
+ bindTouchControls("[data-key-a]","A");
+ bindTouchControls("[data-key-b]","B");
  window.addEventListener("keydown",e=>{for(const t of ["A","B"]){const k=maps[t][e.code];if(k){e.preventDefault();if(!e.repeat)setKey(t,k,true);}}});
  window.addEventListener("keyup",e=>{for(const t of ["A","B"]){const k=maps[t][e.code];if(k){e.preventDefault();setKey(t,k,false);}}});
  window.addEventListener("blur",()=>{release("A");release("B");});
+ document.addEventListener("visibilitychange",()=>{if(document.hidden){release("A");release("B");}});
 }
 function drawTransferredEntity(){
  ov.clearRect(0,0,240,160);
