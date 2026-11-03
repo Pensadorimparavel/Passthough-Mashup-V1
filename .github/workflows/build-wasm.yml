@@ -92,6 +92,9 @@ jobs:
           cp -a /tmp/phase04/Passthough-Mashup-V1-Fase-0.1/tests/phase0_4.js ./tests/
 
 
+      - name: Aplicar probe read-only da Fase 0.7
+        run: python scripts/patch_phase0_7_worker.py
+
       - name: Preparar pastas
         run: mkdir -p logs wasm
 
