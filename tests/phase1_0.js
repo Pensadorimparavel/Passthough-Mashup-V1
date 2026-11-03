@@ -1,25 +1,25 @@
 import { MgbaWorkerAdapter } from "../src/mashup/GbaMashupCore.js";
 import { decodeMinishCapPlayer } from "../src/mashup/adapters/MinishCapDecoder.js";
-import { decodeBuuFuryCandidates } from "../src/mashup/adapters/BuuFuryProbeDecoder.js";
+import { decodeLegacyOfGoku2Player } from "../src/mashup/adapters/LegacyOfGoku2Decoder.js";
 
 const $=s=>document.querySelector(s);
 const ui={
  romA:$("#romA"),romB:$("#romB"),load:$("#load"),stop:$("#stop"),status:$("#status"),
- screenA:$("#screenA"),screenB:$("#screenB"),overlayB:$("#overlayB"),log:$("#log"),
- linkX:$("#linkX"),linkY:$("#linkY"),frames:$("#frames"),probe:$("#probe"),projection:$("#projection"),
+ screenA:$("#screenA"),screenB:$("#screenB"),overlayA:$("#overlayA"),log:$("#log"),
+ linkX:$("#gokuX"),linkY:$("#gokuY"),frames:$("#frames"),probe:$("#providerStatus"),projection:$("#projection"),
  originX:$("#originX"),originY:$("#originY"),scaleX:$("#scaleX"),scaleY:$("#scaleY"),
  offsetX:$("#offsetX"),offsetY:$("#offsetY"),apply:$("#apply")
 };
 const ctxA=ui.screenA.getContext("2d",{alpha:false});
 const ctxB=ui.screenB.getContext("2d",{alpha:false});
-const ov=ui.overlayB.getContext("2d");
+const ov=ui.overlayA.getContext("2d");
 const KEY={a:1,b:2,select:4,start:8,right:16,left:32,up:64,down:128,r:256,l:512};
 const maps={
  A:{ArrowRight:"right",ArrowLeft:"left",ArrowUp:"up",ArrowDown:"down",KeyX:"a",KeyZ:"b",KeyC:"l",KeyV:"r",Enter:"start",ShiftRight:"select"},
  B:{KeyD:"right",KeyA:"left",KeyW:"up",KeyS:"down",KeyJ:"a",KeyK:"b",KeyU:"l",KeyI:"r",Space:"start",KeyQ:"select"}
 };
 let workers={A:null,B:null},adapters={A:null,B:null},held={A:new Set(),B:new Set()},masks={A:0,B:0};
-let running=false,raf=0,busy=false,frame=0,link=null,probe=null;
+let running=false,raf=0,busy=false,frame=0,goku=null;
 let transform={originX:0,originY:0,scaleX:.05,scaleY:.05,offsetX:120,offsetY:80};
 
 function log(s){ui.log.textContent+=s+"\n";ui.log.scrollTop=ui.log.scrollHeight;}
@@ -72,13 +72,13 @@ function bindControls(){
 }
 function drawTransferredEntity(){
  ov.clearRect(0,0,240,160);
- if(!link)return;
- const x=(link.position.x-transform.originX)*transform.scaleX+transform.offsetX;
- const y=(link.position.y-transform.originY)*transform.scaleY+transform.offsetY;
- ui.projection.textContent="Projeção: x="+x.toFixed(1)+" · y="+y.toFixed(1);
+ if(!goku?.position)return;
+ const x=(goku.position.x-transform.originX)*transform.scaleX+transform.offsetX;
+ const y=(goku.position.y-transform.originY)*transform.scaleY+transform.offsetY;
+ ui.projection.textContent="Goku projetado em Minish Cap: x="+x.toFixed(1)+" · y="+y.toFixed(1);
  if(x < -12 || x > 252 || y < -12 || y > 172)return;
  ov.fillStyle="rgba(0,0,0,.72)";ov.fillRect(4,4,142,20);
- ov.fillStyle="#7df9ff";ov.font="10px monospace";ov.fillText("LINK / MINISH CAP",9,18);
+ ov.fillStyle="#7df9ff";ov.font="10px monospace";ov.fillText("GOKU / LEGACY OF GOKU II",9,18);
  ov.strokeStyle="#7df9ff";ov.lineWidth=2;ov.beginPath();ov.arc(x,y,6,0,Math.PI*2);ov.stroke();
  ov.beginPath();ov.moveTo(x-10,y);ov.lineTo(x+10,y);ov.moveTo(x,y-10);ov.lineTo(x,y+10);ov.stroke();
 }
@@ -95,15 +95,16 @@ async function tick(){
   const [ba,bb]=await Promise.all([adapters.A.framebuffer(),adapters.B.framebuffer()]);
   draw(ctxA,ba);draw(ctxB,bb);frame++;
   if(frame%3===0){
-   link=await adapters.A.readState();
-   ui.linkX.textContent=link.position.x.toFixed(3);ui.linkY.textContent=link.position.y.toFixed(3);
+   goku=await adapters.B.readState();
+   ui.linkX.textContent=goku?.position ? goku.position.x.toFixed(3) : "indisponível";
+   ui.linkY.textContent=goku?.position ? goku.position.y.toFixed(3) : "indisponível";
+   ui.probe.textContent=goku?.position
+    ? "Goku detectado · confiança: "+goku.confidence+" · coordenadas Q24.8 convertidas."
+    : (goku?.reason || "Aguardando o personagem ser criado no jogo.");
    ui.frames.textContent=fa+" / "+fb;
    drawTransferredEntity();
   }
-  if(frame%12===0){
-   probe=await adapters.B.readState();
-   ui.probe.textContent="Buu candidates (não são coordenadas confirmadas): "+probe.candidates.map(c=>c.id+"="+c.signalA.toFixed(2)).join(" · ");
-  }
+
  }catch(e){log("ERRO: "+e.message);stop();}
  finally{busy=false;}
  if(running)raf=requestAnimationFrame(tick);
@@ -117,21 +118,21 @@ ui.apply.addEventListener("click",applyCalibration);
 ui.load.addEventListener("click",async()=>{
  const fa=ui.romA.files?.[0],fb=ui.romB.files?.[0];
  if(!fa||!fb){ui.status.textContent="Selecione as duas ROMs.";return;}
- stop();ui.load.disabled=true;ui.log.textContent="";link=null;probe=null;ov.clearRect(0,0,240,160);
+ stop();ui.load.disabled=true;ui.log.textContent="";goku=null;ov.clearRect(0,0,240,160);
  try{
   for(const [t,file] of [["A",fa],["B",fb]]){
    workers[t]=makeWorker();await workers[t].request("init");
    const rom=await file.arrayBuffer();await workers[t].request("loadRom",{rom},[rom]);
   }
   adapters.A=new MgbaWorkerAdapter({id:"minish-cap",game:"minish-cap",worker:workers.A,decodeSnapshot:decodeMinishCapPlayer});
-  adapters.B=new MgbaWorkerAdapter({id:"buu-fury",game:"buu-fury",worker:workers.B,decodeSnapshot:decodeBuuFuryCandidates});
+  adapters.B=new MgbaWorkerAdapter({id:"legacy-of-goku-2",game:"legacy-of-goku-2",worker:workers.B,decodeSnapshot:decodeLegacyOfGoku2Player});
   await Promise.all([adapters.A.stepFrame(),adapters.B.stepFrame()]);
   draw(ctxA,await adapters.A.framebuffer());draw(ctxB,await adapters.B.framebuffer());
   running=true;raf=requestAnimationFrame(tick);ui.load.disabled=false;ui.stop.disabled=false;
-  ui.status.textContent="Dois jogos ativos. Link é decodificado no Worker A e renderizado sobre a tela do Worker B.";
+  ui.status.textContent="Dois jogos ativos. Goku é decodificado no Worker B e projetado sobre Minish Cap (Worker A).";
   log("Adaptadores mGBA conectados ao núcleo GBA.");
-  log("A posição de Link usa Entity +0x2C/+0x30 em Q16.16.");
-  log("Os candidatos de Buu's Fury continuam experimentais; nenhuma RAM é escrita.");
+  log("Goku: g_PlayerObject em 0x03001FA8; X/Y em +0x158/+0x15C (Q24.8, confiança provável).");
+  log("Provider → Host: Legacy of Goku II → Minish Cap. Leitura de RAM somente; nenhuma escrita.");
  }catch(e){log("Falha: "+e.message);ui.status.textContent="Falha ao iniciar: "+e.message;stop();}
 });
 ui.stop.addEventListener("click",stop);
